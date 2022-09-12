@@ -1,0 +1,119 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=320, initial-scale=1">
+    <title>HeartRate</title>	
+    <script type="application/javascript" src="pulselight.js"></script>
+  </head>
+  <body>
+    <h1>PulseLight</h1>
+	<h2>Check your pulse rate! 💗</h2>
+	<hr/>
+	
+	<pre>
+1. Allow the camera access if prompted
+2. Touch and place your index finger on the camera
+3. Wait for atleast 10 seconds or more
+Note: Make sure you are in bright light or swith on the flash light for good results 
+	</pre>
+    <video id="video" width="100" height="100" style="display:block" muted></video>
+    <canvas id="canvasvideo" width="100" height="100" style="display:none"></canvas>
+    
+	<canvas id="g" width="150" height="50" style="border:1px solid green;"></canvas>
+	<input id="hdnGraphColor" type="hidden" value="#FF0000"/>
+	
+	<!-- remove style to see live bpm -->
+	<div id="bpm" style="display:none">--</div>
+		
+	<div id="bpmFinal"> </div>
+	
+	<input id="hdnOn" type="hidden" value="0"/>
+	<input type="button" value="Start" onclick="fnToggle();"/>
+	<input id="btnsnap" type="button" value="snap" onclick="this.value=this.value=='snap'?'gx':'snap'"/>
+	
+
+	
+	<br/>	
+	<br/>
+	<br/>
+	
+<button class="switch">Flash On</button>
+
+<script>
+
+var timer;
+function fnToggle() {
+	if(document.getElementById("hdnOn").value == 0){
+		document.getElementById("hdnOn").value = 1;
+		
+		//change the time here in milliseconds
+		timer = setTimeout(fnReset,10000);
+		
+	  document.getElementById("bpmFinal").innerHTML = "Processing <marquee style='width:50'>. . .</marquee>";		
+		}
+	else
+		document.getElementById("hdnOn").value = 0;
+}
+
+function fnReset(){
+	document.getElementById("hdnOn").value = 0;
+	clearTimeout();
+	// +/- error setting
+	//getPulse(0);
+	getPulse();
+}
+</script>
+
+<script>
+//Test browser support
+const SUPPORTS_MEDIA_DEVICES = 'mediaDevices' in navigator;
+
+if (SUPPORTS_MEDIA_DEVICES) {
+  //Get the environment camera (usually the second one)
+  navigator.mediaDevices.enumerateDevices().then(devices => {
+  
+    const cameras = devices.filter((device) => device.kind === 'videoinput');
+
+    if (cameras.length === 0) {
+      throw 'No camera found on this device.';
+    }
+    const camera = cameras[cameras.length - 1];
+
+    // Create stream and get video track
+    navigator.mediaDevices.getUserMedia({
+      video: {
+        deviceId: camera.deviceId,
+        facingMode: ['user', 'environment'],
+        height: {ideal: 1080},
+        width: {ideal: 1920}
+      }
+    }).then(stream => {
+      const track = stream.getVideoTracks()[0];
+
+      //Create image capture object and get camera capabilities
+      const imageCapture = new ImageCapture(track)
+      const photoCapabilities = imageCapture.getPhotoCapabilities().then(() => {
+
+        //todo: check if camera has a torch
+
+        //let there be light!
+        const btn = document.querySelector('.switch');
+        btn.addEventListener('click', function(){
+          track.applyConstraints({
+            advanced: [{torch: true}]
+          });
+        });
+      });
+    });
+  });
+  
+  //The light will be on as long the track exists
+  
+  
+}
+</script>
+
+	
+	
+  </body>
+</html>
